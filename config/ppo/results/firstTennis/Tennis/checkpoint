@@ -1,0 +1,6 @@
+model_checkpoint_path: "Tennis-10098725.ckpt"
+all_model_checkpoint_paths: "Tennis-8499925.ckpt"
+all_model_checkpoint_paths: "Tennis-8999613.ckpt"
+all_model_checkpoint_paths: "Tennis-9499977.ckpt"
+all_model_checkpoint_paths: "Tennis-9999926.ckpt"
+all_model_checkpoint_paths: "Tennis-10098725.ckpt"

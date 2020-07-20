@@ -1,0 +1,47 @@
+{
+    "Tennis": {
+        "checkpoints": [
+            {
+                "steps": 8499925,
+                "file_path": "results/firstTennis/Tennis/Tennis-8499925.nn",
+                "reward": -0.024630541871921183,
+                "creation_time": 1595168869.811923
+            },
+            {
+                "steps": 8999613,
+                "file_path": "results/firstTennis/Tennis/Tennis-8999613.nn",
+                "reward": -0.125,
+                "creation_time": 1595169673.554032
+            },
+            {
+                "steps": 9499977,
+                "file_path": "results/firstTennis/Tennis/Tennis-9499977.nn",
+                "reward": 0.0,
+                "creation_time": 1595170331.846844
+            },
+            {
+                "steps": 9999926,
+                "file_path": "results/firstTennis/Tennis/Tennis-9999926.nn",
+                "reward": -0.04,
+                "creation_time": 1595171040.328463
+            },
+            {
+                "steps": 10098725,
+                "file_path": "results/firstTennis/Tennis/Tennis-10098725.nn",
+                "reward": 0.07692307692307693,
+                "creation_time": 1595171180.3095522
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 10098725,
+            "file_path": "results/firstTennis/Tennis.nn",
+            "reward": 0.07692307692307693,
+            "creation_time": 1595171180.3095522
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.1.0",
+        "mlagents_version": "0.19.0.dev0",
+        "tensorflow_version": "2.0.1"
+    }
+}
