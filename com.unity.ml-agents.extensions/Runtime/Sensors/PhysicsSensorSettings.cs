@@ -1,5 +1,4 @@
 using System;
-
 using Unity.MLAgents.Sensors;
 
 namespace Unity.MLAgents.Extensions.Sensors
@@ -41,6 +40,16 @@ namespace Unity.MLAgents.Extensions.Sensors
         public bool UseLocalSpaceLinearVelocity;
 
         /// <summary>
+        /// Whether to use joint-specific positions and angles as observations.
+        /// </summary>
+        public bool UseJointPositionsAndAngles;
+
+        /// <summary>
+        /// Whether to use the joint forces and torques that are applied by the solver as observations.
+        /// </summary>
+        public bool UseJointForces;
+
+        /// <summary>
         /// Creates a PhysicsSensorSettings with reasonable default values.
         /// </summary>
         /// <returns></returns>
@@ -68,26 +77,6 @@ namespace Unity.MLAgents.Extensions.Sensors
         {
             get { return UseLocalSpaceTranslations || UseLocalSpaceRotations || UseLocalSpaceLinearVelocity; }
         }
-
-
-        /// <summary>
-        /// The number of floats needed to represent a given number of transforms.
-        /// </summary>
-        /// <param name="numTransforms"></param>
-        /// <returns></returns>
-        public int TransformSize(int numTransforms)
-        {
-            int obsPerTransform = 0;
-            obsPerTransform += UseModelSpaceTranslations ? 3 : 0;
-            obsPerTransform += UseModelSpaceRotations ? 4 : 0;
-            obsPerTransform += UseLocalSpaceTranslations ? 3 : 0;
-            obsPerTransform += UseLocalSpaceRotations ? 4 : 0;
-
-            obsPerTransform += UseModelSpaceLinearVelocity ? 3 : 0;
-            obsPerTransform += UseLocalSpaceLinearVelocity ? 3 : 0;
-
-            return numTransforms * obsPerTransform;
-        }
     }
 
     internal static class ObservationWriterPhysicsExtensions
@@ -105,25 +94,26 @@ namespace Unity.MLAgents.Extensions.Sensors
             var offset = baseOffset;
             if (settings.UseModelSpace)
             {
-                var poses = poseExtractor.ModelSpacePoses;
-                var vels = poseExtractor.ModelSpaceVelocities;
-
-                for(var i=0; i<poseExtractor.NumPoses; i++)
+                foreach (var pose in poseExtractor.GetEnabledModelSpacePoses())
                 {
-                    var pose = poses[i];
-                    if(settings.UseModelSpaceTranslations)
+                    if (settings.UseModelSpaceTranslations)
                     {
                         writer.Add(pose.position, offset);
                         offset += 3;
                     }
+
                     if (settings.UseModelSpaceRotations)
                     {
                         writer.Add(pose.rotation, offset);
                         offset += 4;
                     }
+                }
+
+                foreach(var vel in poseExtractor.GetEnabledModelSpaceVelocities())
+                {
                     if (settings.UseModelSpaceLinearVelocity)
                     {
-                        writer.Add(vels[i], offset);
+                        writer.Add(vel, offset);
                         offset += 3;
                     }
                 }
@@ -131,25 +121,26 @@ namespace Unity.MLAgents.Extensions.Sensors
 
             if (settings.UseLocalSpace)
             {
-                var poses = poseExtractor.LocalSpacePoses;
-                var vels = poseExtractor.LocalSpaceVelocities;
-
-                for(var i=0; i<poseExtractor.NumPoses; i++)
+                foreach (var pose in poseExtractor.GetEnabledLocalSpacePoses())
                 {
-                    var pose = poses[i];
-                    if(settings.UseLocalSpaceTranslations)
+                    if (settings.UseLocalSpaceTranslations)
                     {
                         writer.Add(pose.position, offset);
                         offset += 3;
                     }
+
                     if (settings.UseLocalSpaceRotations)
                     {
                         writer.Add(pose.rotation, offset);
                         offset += 4;
                     }
+                }
+
+                foreach(var vel in poseExtractor.GetEnabledLocalSpaceVelocities())
+                {
                     if (settings.UseLocalSpaceLinearVelocity)
                     {
-                        writer.Add(vels[i], offset);
+                        writer.Add(vel, offset);
                         offset += 3;
                     }
                 }

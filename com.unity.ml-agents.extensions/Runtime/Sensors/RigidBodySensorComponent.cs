@@ -14,6 +14,11 @@ namespace Unity.MLAgents.Extensions.Sensors
         public Rigidbody RootBody;
 
         /// <summary>
+        /// Optional GameObject used to determine the root of the poses.
+        /// </summary>
+        public GameObject VirtualRoot;
+
+        /// <summary>
         /// Settings defining what types of observations will be generated.
         /// </summary>
         [SerializeField]
@@ -30,7 +35,7 @@ namespace Unity.MLAgents.Extensions.Sensors
         /// <returns></returns>
         public override ISensor CreateSensor()
         {
-            return new PhysicsBodySensor(RootBody, gameObject, Settings, sensorName);
+            return new PhysicsBodySensor(RootBody, gameObject, VirtualRoot, Settings, sensorName);
         }
 
         /// <inheritdoc/>
@@ -43,9 +48,18 @@ namespace Unity.MLAgents.Extensions.Sensors
 
             // TODO static method in PhysicsBodySensor?
             // TODO only update PoseExtractor when body changes?
-            var poseExtractor = new RigidBodyPoseExtractor(RootBody, gameObject);
-            var numTransformObservations = Settings.TransformSize(poseExtractor.NumPoses);
-            return new[] { numTransformObservations };
+            var poseExtractor = new RigidBodyPoseExtractor(RootBody, gameObject, VirtualRoot);
+            var numPoseObservations = poseExtractor.GetNumPoseObservations(Settings);
+
+            var numJointObservations = 0;
+            // Start from i=1 to ignore the root
+            for (var i = 1; i < poseExtractor.Bodies.Length; i++)
+            {
+                var body = poseExtractor.Bodies[i];
+                var joint = body?.GetComponent<Joint>();
+                numJointObservations += RigidBodyJointExtractor.NumObservations(body, joint, Settings);
+            }
+            return new[] { numPoseObservations + numJointObservations };
         }
     }
 

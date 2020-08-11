@@ -5,14 +5,14 @@ from collections import defaultdict
 import abc
 import time
 import attr
-from mlagents.model_serialization import SerializationSettings
+from mlagents.model_serialization import SerializationSettings, copy_model_files
 from mlagents.trainers.policy.checkpoint_manager import (
     NNCheckpoint,
     NNCheckpointManager,
 )
 from mlagents_envs.logging_util import get_logger
 from mlagents_envs.timers import timed
-from mlagents.trainers.optimizer.tf_optimizer import TFOptimizer
+from mlagents.trainers.optimizer import Optimizer
 from mlagents.trainers.buffer import AgentBuffer
 from mlagents.trainers.trainer import Trainer
 from mlagents.trainers.components.reward_signals import RewardSignalResult
@@ -56,7 +56,7 @@ class RLTrainer(Trainer):  # pylint: disable=abstract-method
             for agent_id in rewards:
                 rewards[agent_id] = 0
 
-    def _update_end_episode_stats(self, agent_id: str, optimizer: TFOptimizer) -> None:
+    def _update_end_episode_stats(self, agent_id: str, optimizer: Optimizer) -> None:
         for name, rewards in self.collected_rewards.items():
             if name == "environment":
                 self.stats_reporter.add_stat(
@@ -131,12 +131,14 @@ class RLTrainer(Trainer):  # pylint: disable=abstract-method
                 "Trainer has multiple policies, but default behavior only saves the first."
             )
         policy = list(self.policies.values())[0]
-        settings = SerializationSettings(policy.model_path, self.brain_name)
         model_checkpoint = self._checkpoint()
+
+        # Copy the checkpointed model files to the final output location
+        copy_model_files(model_checkpoint.file_path, f"{policy.model_path}.nn")
+
         final_checkpoint = attr.evolve(
             model_checkpoint, file_path=f"{policy.model_path}.nn"
         )
-        policy.save(policy.model_path, settings)
         NNCheckpointManager.track_final_checkpoint(self.brain_name, final_checkpoint)
 
     @abc.abstractmethod

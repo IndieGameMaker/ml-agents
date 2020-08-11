@@ -45,12 +45,11 @@ namespace Unity.MLAgents.Extensions.Tests.Sensors
 
             var sensor = sensorComponent.CreateSensor();
             sensor.Update();
-            var expected = new[]
-            {
-                0f, 0f, 0f, // ModelSpaceLinearVelocity
-                0f, 0f, 0f, // LocalSpaceTranslations
-                0f, 0f, 0f, 1f // LocalSpaceRotations
-            };
+
+            // The root body is ignored since it always generates identity values
+            // and there are no other bodies to generate observations.
+            var expected = new float[0];
+            Assert.AreEqual(expected.Length, sensorComponent.GetObservationShape()[0]);
             SensorTestHelper.CompareObservation(sensor, expected);
         }
 
@@ -77,6 +76,7 @@ namespace Unity.MLAgents.Extensions.Tests.Sensors
             var joint2 = leafGameObj.AddComponent<ConfigurableJoint>();
             joint2.connectedBody = middleRb;
 
+            var virtualRoot = new GameObject();
 
             var sensorComponent = rootObj.AddComponent<RigidBodySensorComponent>();
             sensorComponent.RootBody = rootRb;
@@ -86,9 +86,12 @@ namespace Unity.MLAgents.Extensions.Tests.Sensors
                 UseLocalSpaceTranslations = true,
                 UseLocalSpaceLinearVelocity = true
             };
+            sensorComponent.VirtualRoot = virtualRoot;
 
             var sensor = sensorComponent.CreateSensor();
             sensor.Update();
+
+            // Note that the VirtualRoot is ignored from the observations
             var expected = new[]
             {
                 // Model space
@@ -98,15 +101,35 @@ namespace Unity.MLAgents.Extensions.Tests.Sensors
 
                 // Local space
                 0f, 0f, 0f, // Root pos
-                0f, 0f, 0f, // Root vel
-
                 13.37f, 0f, 0f, // Attached pos
-                -1f, 1f, 0f, // Attached vel
-
                 4.2f, 0f, 0f, // Leaf pos
+
+                1f, 0f, 0f, // Root vel (relative to virtual root)
+                -1f, 1f, 0f, // Attached vel
                 0f, -1f, 1f // Leaf vel
             };
+            Assert.AreEqual(expected.Length, sensorComponent.GetObservationShape()[0]);
             SensorTestHelper.CompareObservation(sensor, expected);
+
+            // Update the settings to only process joint observations
+            sensorComponent.Settings = new PhysicsSensorSettings
+            {
+                UseJointPositionsAndAngles = true,
+                UseJointForces = true,
+            };
+
+            sensor = sensorComponent.CreateSensor();
+            sensor.Update();
+
+            expected = new[]
+            {
+                0f, 0f, 0f, // joint1.force
+                0f, 0f, 0f, // joint1.torque
+                0f, 0f, 0f, // joint2.force
+                0f, 0f, 0f, // joint2.torque
+            };
+            SensorTestHelper.CompareObservation(sensor, expected);
+            Assert.AreEqual(expected.Length, sensorComponent.GetObservationShape()[0]);
 
         }
     }
