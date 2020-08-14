@@ -1,2 +1,4 @@
-model_checkpoint_path: "Mummy-499087.ckpt"
+model_checkpoint_path: "Mummy-1000146.ckpt"
 all_model_checkpoint_paths: "Mummy-499087.ckpt"
+all_model_checkpoint_paths: "Mummy-999510.ckpt"
+all_model_checkpoint_paths: "Mummy-1000146.ckpt"
