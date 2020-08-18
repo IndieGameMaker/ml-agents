@@ -2,29 +2,29 @@
     "Mummy": {
         "checkpoints": [
             {
-                "steps": 499087,
-                "file_path": "results/mummy_ray/Mummy/Mummy-499087.nn",
-                "reward": 10.983333269755045,
-                "creation_time": 1597393755.2499719
+                "steps": 499235,
+                "file_path": "results/mummy_ray/Mummy/Mummy-499235.nn",
+                "reward": 10.199999809265137,
+                "creation_time": 1597407739.7243252
             },
             {
-                "steps": 999510,
-                "file_path": "results/mummy_ray/Mummy/Mummy-999510.nn",
-                "reward": 9.441666523615519,
-                "creation_time": 1597395669.277308
+                "steps": 999445,
+                "file_path": "results/mummy_ray/Mummy/Mummy-999445.nn",
+                "reward": 13.524999856948853,
+                "creation_time": 1597409636.588437
             },
             {
-                "steps": 1000146,
-                "file_path": "results/mummy_ray/Mummy/Mummy-1000146.nn",
-                "reward": 9.492856911250524,
-                "creation_time": 1597395669.666225
+                "steps": 1000372,
+                "file_path": "results/mummy_ray/Mummy/Mummy-1000372.nn",
+                "reward": 14.014285700661796,
+                "creation_time": 1597409637.035054
             }
         ],
         "final_checkpoint": {
-            "steps": 1000146,
+            "steps": 1000372,
             "file_path": "results/mummy_ray/Mummy.nn",
-            "reward": 9.492856911250524,
-            "creation_time": 1597395669.666225
+            "reward": 14.014285700661796,
+            "creation_time": 1597409637.035054
         }
     },
     "metadata": {
