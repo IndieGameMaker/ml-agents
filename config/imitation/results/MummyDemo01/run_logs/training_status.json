@@ -1,0 +1,29 @@
+{
+    "MummyIM": {
+        "checkpoints": [
+            {
+                "steps": 499972,
+                "file_path": "results/MummyDemo01/MummyIM/MummyIM-499972.nn",
+                "reward": -0.09333333047106862,
+                "creation_time": 1597729519.528987
+            },
+            {
+                "steps": 500164,
+                "file_path": "results/MummyDemo01/MummyIM/MummyIM-500164.nn",
+                "reward": -0.09333333047106862,
+                "creation_time": 1597729519.871706
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 500164,
+            "file_path": "results/MummyDemo01/MummyIM.nn",
+            "reward": -0.09333333047106862,
+            "creation_time": 1597729519.871706
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.1.0",
+        "mlagents_version": "0.20.0.dev0",
+        "tensorflow_version": "2.0.1"
+    }
+}

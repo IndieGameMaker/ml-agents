@@ -1,0 +1,2 @@
+model_checkpoint_path: "Mummy-2568.ckpt"
+all_model_checkpoint_paths: "Mummy-2568.ckpt"

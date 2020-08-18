@@ -1,0 +1,3 @@
+model_checkpoint_path: "MummyIM-500164.ckpt"
+all_model_checkpoint_paths: "MummyIM-499972.ckpt"
+all_model_checkpoint_paths: "MummyIM-500164.ckpt"
