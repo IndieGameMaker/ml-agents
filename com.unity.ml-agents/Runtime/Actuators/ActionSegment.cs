@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Unity.MLAgents.Actuators
 {
@@ -11,7 +12,7 @@ namespace Unity.MLAgents.Actuators
     /// the offset into the original array, and an length.
     /// </summary>
     /// <typeparam name="T">The type of object stored in the underlying <see cref="Array"/></typeparam>
-    internal readonly struct ActionSegment<T> : IEnumerable<T>, IEquatable<ActionSegment<T>>
+    public readonly struct ActionSegment<T> : IEnumerable<T>, IEquatable<ActionSegment<T>>
         where T : struct
     {
         /// <summary>
@@ -30,17 +31,25 @@ namespace Unity.MLAgents.Actuators
         /// </summary>
         public static ActionSegment<T> Empty = new ActionSegment<T>(System.Array.Empty<T>(), 0, 0);
 
-        static void CheckParameters(T[] actionArray, int offset, int length)
+        static void CheckParameters(IReadOnlyCollection<T> actionArray, int offset, int length)
         {
 #if DEBUG
-            if (offset + length > actionArray.Length)
+            if (offset + length > actionArray.Count)
             {
                 throw new ArgumentOutOfRangeException(nameof(offset),
                     $"Arguments offset: {offset} and length: {length} " +
-                    $"are out of bounds of actionArray: {actionArray.Length}.");
+                    $"are out of bounds of actionArray: {actionArray.Count}.");
             }
 #endif
         }
+
+        /// <summary>
+        /// Construct an <see cref="ActionSegment{T}"/> with just an actionArray.  The <see cref="Offset"/> will
+        /// be set to 0 and the <see cref="Length"/> will be set to `actionArray.Length`.
+        /// </summary>
+        /// <param name="actionArray">The action array to use for the this segment.</param>
+        public ActionSegment(T[] actionArray)
+            : this(actionArray ?? System.Array.Empty<T>(), 0, actionArray?.Length ?? 0) { }
 
         /// <summary>
         /// Construct an <see cref="ActionSegment{T}"/> with an underlying array
@@ -51,8 +60,10 @@ namespace Unity.MLAgents.Actuators
         /// <param name="length">The length of the segment.</param>
         public ActionSegment(T[] actionArray, int offset, int length)
         {
-            CheckParameters(actionArray, offset, length);
-            Array = actionArray;
+#if DEBUG
+            CheckParameters(actionArray ?? System.Array.Empty<T>(), offset, length);
+#endif
+            Array = actionArray ?? System.Array.Empty<T>();
             Offset = offset;
             Length = length;
         }
@@ -78,6 +89,22 @@ namespace Unity.MLAgents.Actuators
                 }
                 return Array[Offset + index];
             }
+            set
+            {
+                if (index < 0 || index > Length)
+                {
+                    throw new IndexOutOfRangeException($"Index out of bounds, expected a number between 0 and {Length}");
+                }
+                Array[Offset + index] = value;
+            }
+        }
+
+        /// <summary>
+        /// Sets the segment of the backing array to all zeros.
+        /// </summary>
+        public void Clear()
+        {
+            System.Array.Clear(Array, Offset, Length);
         }
 
         /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
@@ -105,7 +132,7 @@ namespace Unity.MLAgents.Actuators
         /// <inheritdoc cref="IEquatable{T}.Equals(T)"/>
         public bool Equals(ActionSegment<T> other)
         {
-            return Offset == other.Offset && Length == other.Length && Equals(Array, other.Array);
+            return Offset == other.Offset && Length == other.Length && Array.SequenceEqual(other.Array);
         }
 
         /// <inheritdoc cref="ValueType.GetHashCode"/>

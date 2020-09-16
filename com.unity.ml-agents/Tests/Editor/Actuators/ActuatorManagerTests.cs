@@ -29,22 +29,22 @@ namespace Unity.MLAgents.Tests.Actuators
                 actuator1ActionSpaceDef.SumOfDiscreteBranchSizes + actuator2ActionSpaceDef.SumOfDiscreteBranchSizes,
                 actuator1ActionSpaceDef.NumDiscreteActions + actuator2ActionSpaceDef.NumDiscreteActions);
 
-            manager.UpdateActions(new[]
-                { 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f }, Array.Empty<int>());
+            manager.UpdateActions(new ActionBuffers(new[]
+                { 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f }, Array.Empty<int>()));
 
             Assert.IsTrue(12 == manager.NumContinuousActions);
             Assert.IsTrue(0 == manager.NumDiscreteActions);
             Assert.IsTrue(0 == manager.SumOfDiscreteBranchSizes);
-            Assert.IsTrue(12 == manager.StoredContinuousActions.Length);
-            Assert.IsTrue(0 == manager.StoredDiscreteActions.Length);
+            Assert.IsTrue(12 == manager.StoredActions.ContinuousActions.Length);
+            Assert.IsTrue(0 == manager.StoredActions.DiscreteActions.Length);
         }
 
         [Test]
         public void TestEnsureBufferDiscrete()
         {
             var manager = new ActuatorManager();
-            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1 , 2, 3, 4}), "actuator1");
-            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 1, 1}), "actuator2");
+            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3, 4 }), "actuator1");
+            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 1, 1 }), "actuator2");
             manager.Add(actuator1);
             manager.Add(actuator2);
             var actuator1ActionSpaceDef = actuator1.ActionSpec;
@@ -54,26 +54,26 @@ namespace Unity.MLAgents.Tests.Actuators
                 actuator1ActionSpaceDef.SumOfDiscreteBranchSizes + actuator2ActionSpaceDef.SumOfDiscreteBranchSizes,
                 actuator1ActionSpaceDef.NumDiscreteActions + actuator2ActionSpaceDef.NumDiscreteActions);
 
-            manager.UpdateActions(Array.Empty<float>(),
-                new[] { 0, 1, 2, 3, 4, 5, 6});
+            manager.UpdateActions(new ActionBuffers(Array.Empty<float>(),
+                new[] { 0, 1, 2, 3, 4, 5, 6 }));
 
             Assert.IsTrue(0 == manager.NumContinuousActions);
             Assert.IsTrue(7 == manager.NumDiscreteActions);
             Assert.IsTrue(13 == manager.SumOfDiscreteBranchSizes);
-            Assert.IsTrue(0 == manager.StoredContinuousActions.Length);
-            Assert.IsTrue(7 == manager.StoredDiscreteActions.Length);
+            Assert.IsTrue(0 == manager.StoredActions.ContinuousActions.Length);
+            Assert.IsTrue(7 == manager.StoredActions.DiscreteActions.Length);
         }
 
         [Test]
         public void TestFailOnMixedActionSpace()
         {
             var manager = new ActuatorManager();
-            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1 , 2, 3, 4}), "actuator1");
+            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3, 4 }), "actuator1");
             var actuator2 = new TestActuator(ActionSpec.MakeContinuous(3), "actuator2");
             manager.Add(actuator1);
             manager.Add(actuator2);
-            manager.ReadyActuatorsForExecution(new[] { actuator1, actuator2 }, 3, 10, 4);
             LogAssert.Expect(LogType.Assert, "Actuators on the same Agent must have the same action SpaceType.");
+            manager.ReadyActuatorsForExecution(new[] { actuator1, actuator2 }, 3, 10, 4);
         }
 
         [Test]
@@ -92,14 +92,14 @@ namespace Unity.MLAgents.Tests.Actuators
         public void TestExecuteActionsDiscrete()
         {
             var manager = new ActuatorManager();
-            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1 , 2, 3, 4}), "actuator1");
-            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 1, 1}), "actuator2");
+            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3, 4 }), "actuator1");
+            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 1, 1 }), "actuator2");
             manager.Add(actuator1);
             manager.Add(actuator2);
 
-            var discreteActionBuffer = new[] { 0, 1, 2, 3, 4, 5, 6};
-            manager.UpdateActions(Array.Empty<float>(),
-                discreteActionBuffer);
+            var discreteActionBuffer = new[] { 0, 1, 2, 3, 4, 5, 6 };
+            manager.UpdateActions(new ActionBuffers(Array.Empty<float>(),
+                discreteActionBuffer));
 
             manager.ExecuteActions();
             var actuator1Actions = actuator1.LastActionBuffer.DiscreteActions;
@@ -117,9 +117,9 @@ namespace Unity.MLAgents.Tests.Actuators
             manager.Add(actuator1);
             manager.Add(actuator2);
 
-            var continuousActionBuffer = new[] { 0f, 1f, 2f, 3f, 4f, 5f};
-            manager.UpdateActions(continuousActionBuffer,
-                Array.Empty<int>());
+            var continuousActionBuffer = new[] { 0f, 1f, 2f, 3f, 4f, 5f };
+            manager.UpdateActions(new ActionBuffers(continuousActionBuffer,
+                Array.Empty<int>()));
 
             manager.ExecuteActions();
             var actuator1Actions = actuator1.LastActionBuffer.ContinuousActions;
@@ -148,11 +148,11 @@ namespace Unity.MLAgents.Tests.Actuators
             var actuator2 = new TestActuator(ActionSpec.MakeContinuous(3), "actuator2");
             manager.Add(actuator1);
             manager.Add(actuator2);
-            var continuousActionBuffer = new[] { 0f, 1f, 2f, 3f, 4f, 5f};
-            manager.UpdateActions(continuousActionBuffer,
-                Array.Empty<int>());
+            var continuousActionBuffer = new[] { 0f, 1f, 2f, 3f, 4f, 5f };
+            manager.UpdateActions(new ActionBuffers(continuousActionBuffer,
+                Array.Empty<int>()));
 
-            Assert.IsTrue(manager.StoredContinuousActions.SequenceEqual(continuousActionBuffer));
+            Assert.IsTrue(manager.StoredActions.ContinuousActions.SequenceEqual(continuousActionBuffer));
         }
 
         [Test]
@@ -161,16 +161,16 @@ namespace Unity.MLAgents.Tests.Actuators
             var manager = new ActuatorManager();
             var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }),
                 "actuator1");
-            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 2, 3}), "actuator2");
+            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }), "actuator2");
             manager.Add(actuator1);
             manager.Add(actuator2);
-            var discreteActionBuffer = new[] { 0, 1, 2, 3, 4, 5};
-            manager.UpdateActions(Array.Empty<float>(),
-                discreteActionBuffer);
+            var discreteActionBuffer = new[] { 0, 1, 2, 3, 4, 5 };
+            manager.UpdateActions(new ActionBuffers(Array.Empty<float>(),
+                discreteActionBuffer));
 
-            Debug.Log(manager.StoredDiscreteActions);
+            Debug.Log(manager.StoredActions.DiscreteActions);
             Debug.Log(discreteActionBuffer);
-            Assert.IsTrue(manager.StoredDiscreteActions.SequenceEqual(discreteActionBuffer));
+            Assert.IsTrue(manager.StoredActions.DiscreteActions.SequenceEqual(discreteActionBuffer));
         }
 
         [Test]
@@ -179,7 +179,7 @@ namespace Unity.MLAgents.Tests.Actuators
             var manager = new ActuatorManager();
             var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }),
                 "actuator1");
-            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 2, 3}), "actuator2");
+            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }), "actuator2");
 
             manager.Add(actuator1);
             manager.Add(actuator2);
@@ -207,7 +207,7 @@ namespace Unity.MLAgents.Tests.Actuators
             var manager = new ActuatorManager();
             var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }),
                 "actuator1");
-            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 2, 3}), "actuator2");
+            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }), "actuator2");
             manager.Add(actuator1);
             manager.Add(actuator2);
 
@@ -224,9 +224,9 @@ namespace Unity.MLAgents.Tests.Actuators
         public void TestIndexSet()
         {
             var manager = new ActuatorManager();
-            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3, 4}),
+            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3, 4 }),
                 "actuator1");
-            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 2, 3}), "actuator2");
+            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }), "actuator2");
             manager.Add(actuator1);
             Assert.IsTrue(manager.NumDiscreteActions == 4);
             Assert.IsTrue(manager.SumOfDiscreteBranchSizes == 10);
@@ -239,9 +239,9 @@ namespace Unity.MLAgents.Tests.Actuators
         public void TestInsert()
         {
             var manager = new ActuatorManager();
-            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3, 4}),
+            var actuator1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3, 4 }),
                 "actuator1");
-            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 2, 3}), "actuator2");
+            var actuator2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }), "actuator2");
             manager.Add(actuator1);
             Assert.IsTrue(manager.NumDiscreteActions == 4);
             Assert.IsTrue(manager.SumOfDiscreteBranchSizes == 10);
@@ -260,23 +260,23 @@ namespace Unity.MLAgents.Tests.Actuators
             var actuator2 = new TestActuator(ActionSpec.MakeContinuous(3), "actuator2");
             manager.Add(actuator1);
             manager.Add(actuator2);
-            var continuousActionBuffer = new[] { 0f, 1f, 2f, 3f, 4f, 5f};
-            manager.UpdateActions(continuousActionBuffer,
-                Array.Empty<int>());
+            var continuousActionBuffer = new[] { 0f, 1f, 2f, 3f, 4f, 5f };
+            manager.UpdateActions(new ActionBuffers(continuousActionBuffer,
+                Array.Empty<int>()));
 
-            Assert.IsTrue(manager.StoredContinuousActions.SequenceEqual(continuousActionBuffer));
+            Assert.IsTrue(manager.StoredActions.ContinuousActions.SequenceEqual(continuousActionBuffer));
             Assert.IsTrue(manager.NumContinuousActions == 6);
             manager.ResetData();
 
-            Assert.IsTrue(manager.StoredContinuousActions.SequenceEqual(new[] { 0f, 0f, 0f, 0f, 0f, 0f}));
+            Assert.IsTrue(manager.StoredActions.ContinuousActions.SequenceEqual(new[] { 0f, 0f, 0f, 0f, 0f, 0f }));
         }
 
         [Test]
         public void TestWriteDiscreteActionMask()
         {
             var manager = new ActuatorManager(2);
-            var va1 = new TestActuator(ActionSpec.MakeDiscrete(new[] {1, 2, 3}), "name");
-            var va2 = new TestActuator(ActionSpec.MakeDiscrete(new[] {3, 2, 1}), "name1");
+            var va1 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 1, 2, 3 }), "name");
+            var va2 = new TestActuator(ActionSpec.MakeDiscrete(new[] { 3, 2, 1 }), "name1");
             manager.Add(va1);
             manager.Add(va2);
 

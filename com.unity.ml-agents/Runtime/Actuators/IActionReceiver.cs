@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEngine;
 
 namespace Unity.MLAgents.Actuators
 {
@@ -7,7 +8,7 @@ namespace Unity.MLAgents.Actuators
     /// A structure that wraps the <see cref="ActionSegment{T}"/>s for a particular <see cref="IActionReceiver"/> and is
     /// used when <see cref="IActionReceiver.OnActionReceived"/> is called.
     /// </summary>
-    internal readonly struct ActionBuffers
+    public readonly struct ActionBuffers
     {
         /// <summary>
         /// An empty action buffer.
@@ -25,6 +26,30 @@ namespace Unity.MLAgents.Actuators
         public ActionSegment<int> DiscreteActions { get; }
 
         /// <summary>
+        /// Create an <see cref="ActionBuffers"/> instance with discrete actions stored as a float array.  This exists
+        /// to achieve backward compatibility with the former Agent methods which used a float array for both continuous
+        /// and discrete actions.
+        /// </summary>
+        /// <param name="discreteActions">The float array of discrete actions.</param>
+        /// <returns>An <see cref="ActionBuffers"/> instance initialized with a <see cref="DiscreteActions"/>
+        /// <see cref="ActionSegment{T}"/> initialized from a float array.</returns>
+        public static ActionBuffers FromDiscreteActions(float[] discreteActions)
+        {
+            return new ActionBuffers(ActionSegment<float>.Empty, discreteActions == null ? ActionSegment<int>.Empty
+                : new ActionSegment<int>(Array.ConvertAll(discreteActions,
+                    x => (int)x)));
+        }
+
+        /// <summary>
+        /// Construct an <see cref="ActionBuffers"/> instance with the continuous and discrete actions that will
+        /// be used.
+        /// /// </summary>
+        /// <param name="continuousActions">The continuous actions to send to an <see cref="IActionReceiver"/>.</param>
+        /// <param name="discreteActions">The discrete actions to send to an <see cref="IActionReceiver"/>.</param>
+        public ActionBuffers(float[] continuousActions, int[] discreteActions)
+            : this(new ActionSegment<float>(continuousActions), new ActionSegment<int>(discreteActions)) { }
+
+        /// <summary>
         /// Construct an <see cref="ActionBuffers"/> instance with the continuous and discrete actions that will
         /// be used.
         /// </summary>
@@ -34,6 +59,15 @@ namespace Unity.MLAgents.Actuators
         {
             ContinuousActions = continuousActions;
             DiscreteActions = discreteActions;
+        }
+
+        /// <summary>
+        /// Clear the <see cref="ContinuousActions"/> and <see cref="DiscreteActions"/> segments to be all zeros.
+        /// </summary>
+        public void Clear()
+        {
+            ContinuousActions.Clear();
+            DiscreteActions.Clear();
         }
 
         /// <inheritdoc cref="ValueType.Equals(object)"/>
@@ -57,20 +91,53 @@ namespace Unity.MLAgents.Actuators
                 return (ContinuousActions.GetHashCode() * 397) ^ DiscreteActions.GetHashCode();
             }
         }
+
+        /// <summary>
+        /// Packs the continuous and discrete actions into one float array.  The array passed into this method
+        /// must have a Length that is greater than or equal to the sum of the Lengths of
+        /// <see cref="ContinuousActions"/> and <see cref="DiscreteActions"/>.
+        /// </summary>
+        /// <param name="destination">A float array to pack actions into whose length is greater than or
+        /// equal to the addition of the Lengths of this objects <see cref="ContinuousActions"/> and
+        /// <see cref="DiscreteActions"/> segments.</param>
+        public void PackActions(in float[] destination)
+        {
+            Debug.Assert(destination.Length >= ContinuousActions.Length + DiscreteActions.Length,
+                $"argument '{nameof(destination)}' is not large enough to pack the actions into.\n" +
+                $"{nameof(destination)}.Length: {destination.Length}\n" +
+                $"{nameof(ContinuousActions)}.Length + {nameof(DiscreteActions)}.Length: {ContinuousActions.Length + DiscreteActions.Length}");
+
+            var start = 0;
+            if (ContinuousActions.Length > 0)
+            {
+                Array.Copy(ContinuousActions.Array,
+                    ContinuousActions.Offset,
+                    destination,
+                    start,
+                    ContinuousActions.Length);
+                start = ContinuousActions.Length;
+            }
+            if (start >= destination.Length)
+            {
+                return;
+            }
+
+            if (DiscreteActions.Length > 0)
+            {
+                Array.Copy(DiscreteActions.Array,
+                    DiscreteActions.Offset,
+                    destination,
+                    start,
+                    DiscreteActions.Length);
+            }
+        }
     }
 
     /// <summary>
     /// An interface that describes an object that can receive actions from a Reinforcement Learning network.
     /// </summary>
-    internal interface IActionReceiver
+    public interface IActionReceiver
     {
-
-        /// <summary>
-        /// The specification of the Action space for this IActionReceiver.
-        /// </summary>
-        /// <seealso cref="ActionSpec"/>
-        ActionSpec ActionSpec { get; }
-
         /// <summary>
         /// Method called in order too allow object to execute actions based on the
         /// <see cref="ActionBuffers"/> contents.  The structure of the contents in the <see cref="ActionBuffers"/>
