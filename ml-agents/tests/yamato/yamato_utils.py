@@ -84,6 +84,24 @@ def run_standalone_build(
     return res.returncode
 
 
+def find_executables(root_dir: str) -> List[str]:
+    """
+    Try to find the player executable. This seems to vary between Unity versions.
+    """
+    ignored_extension = frozenset([".dll", ".dylib", ".bundle"])
+    ignored_files = frozenset(["macblas"])
+    exes = []
+    for root, _, files in os.walk(root_dir):
+        for filename in files:
+            file_root, ext = os.path.splitext(filename)
+            if ext in ignored_extension or filename in ignored_files:
+                continue
+            file_path = os.path.join(root, filename)
+            if os.access(file_path, os.X_OK):
+                exes.append(file_path)
+    return exes
+
+
 def init_venv(
     mlagents_python_version: str = None, extra_packages: Optional[List[str]] = None
 ) -> str:
@@ -105,6 +123,7 @@ def init_venv(
         "--upgrade setuptools",
         # TODO build these and publish to internal pypi
         "~/tensorflow_pkg/tensorflow-2.0.0-cp37-cp37m-macosx_10_14_x86_64.whl",
+        "tf2onnx==1.6.1",
     ]
     if mlagents_python_version:
         # install from pypi
@@ -118,8 +137,9 @@ def init_venv(
     if extra_packages:
         pip_commands += extra_packages
     for cmd in pip_commands:
+        pip_index_url = "--index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple"
         subprocess.check_call(
-            f"source {venv_path}/bin/activate; python -m pip install -q {cmd}",
+            f"source {venv_path}/bin/activate; python -m pip install -q {cmd} {pip_index_url}",
             shell=True,
         )
     return venv_path
@@ -152,7 +172,7 @@ def undo_git_checkout():
     subprocess.check_call("rm -rf Project/Library", shell=True)
 
 
-def override_config_file(src_path, dest_path, **kwargs):
+def override_config_file(src_path, dest_path, overrides):
     """
     Override settings in a trainer config file. For example,
         override_config_file(src_path, dest_path, max_steps=42)
@@ -163,10 +183,18 @@ def override_config_file(src_path, dest_path, **kwargs):
         behavior_configs = configs["behaviors"]
 
     for config in behavior_configs.values():
-        config.update(**kwargs)
+        _override_config_dict(config, overrides)
 
     with open(dest_path, "w") as f:
         yaml.dump(configs, f)
+
+
+def _override_config_dict(config, overrides):
+    for key, val in overrides.items():
+        if isinstance(val, dict):
+            _override_config_dict(config[key], val)
+        else:
+            config[key] = val
 
 
 def override_legacy_config_file(python_version, src_path, dest_path, **kwargs):

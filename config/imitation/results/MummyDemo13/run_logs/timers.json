@@ -1,0 +1,47 @@
+{
+    "name": "root",
+    "metadata": {
+        "timer_format_version": "0.1.0",
+        "start_time_seconds": "1597734598",
+        "python_version": "3.7.3 (default, Apr 24 2020, 18:51:23) \n[Clang 11.0.3 (clang-1103.0.32.62)]",
+        "command_line_arguments": "/usr/local/bin/mlagents-learn Mummy.yaml --run-id=MummyDemo13",
+        "mlagents_version": "0.20.0.dev0",
+        "mlagents_envs_version": "0.20.0.dev0",
+        "communication_protocol_version": "1.0.0",
+        "tensorflow_version": "2.0.1",
+        "numpy_version": "1.18.2",
+        "end_time_seconds": "1597734598"
+    },
+    "total": 0.04797583399999983,
+    "count": 1,
+    "self": 0.007266851999999879,
+    "children": {
+        "run_training.setup": {
+            "total": 0.014019840000000006,
+            "count": 1,
+            "self": 0.014019840000000006
+        },
+        "TrainerController.start_learning": {
+            "total": 0.026689141999999944,
+            "count": 1,
+            "self": 0.0015568490000004154,
+            "children": {
+                "TrainerController._reset_env": {
+                    "total": 0.02505697199999979,
+                    "count": 1,
+                    "self": 0.02505697199999979
+                },
+                "trainer_threads": {
+                    "total": 1.3699999996674705e-06,
+                    "count": 1,
+                    "self": 1.3699999996674705e-06
+                },
+                "TrainerController._save_models": {
+                    "total": 7.395100000007204e-05,
+                    "count": 1,
+                    "self": 7.395100000007204e-05
+                }
+            }
+        }
+    }
+}
